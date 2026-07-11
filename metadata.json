@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Food Tracker",
+  "description": "Offline food and nutrition tracker with macro calculations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
