@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import android.content.Context
 import java.util.Calendar
 
 import kotlinx.coroutines.flow.combine
@@ -24,6 +25,16 @@ import kotlinx.coroutines.flow.combine
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val db = AppDatabase.getDatabase(application)
     private val repository = Repository(db, application)
+
+    // SharedPreferences for storing user name locally
+    private val sharedPrefs = application.getSharedPreferences("food_tracker_prefs", Context.MODE_PRIVATE)
+    private val _userName = MutableStateFlow(sharedPrefs.getString("user_name", "") ?: "")
+    val userName: StateFlow<String> = _userName
+
+    fun updateUserName(name: String) {
+        sharedPrefs.edit().putString("user_name", name.trim()).apply()
+        _userName.value = name.trim()
+    }
 
     // Current Date logic
     private val _currentDate = MutableStateFlow(getStartOfDayMillis())

@@ -1,7 +1,9 @@
 package com.example.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -18,13 +20,17 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit
 ) {
     val userGoal by viewModel.userGoal.collectAsState()
+    val userName by viewModel.userName.collectAsState()
     
+    var nameStr by remember(userName) { mutableStateOf(userName) }
     var caloriesStr by remember(userGoal) { mutableStateOf(userGoal?.calories?.toString() ?: "2000") }
     var proteinStr by remember(userGoal) { mutableStateOf(userGoal?.protein?.toString() ?: "120") }
     var carbsStr by remember(userGoal) { mutableStateOf(userGoal?.carbs?.toString() ?: "250") }
     var fatStr by remember(userGoal) { mutableStateOf(userGoal?.fat?.toString() ?: "65") }
     var fiberStr by remember(userGoal) { mutableStateOf(userGoal?.fiber?.toString() ?: "30") }
     var waterStr by remember(userGoal) { mutableStateOf(userGoal?.waterMl?.toString() ?: "2500") }
+
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -42,9 +48,19 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text("Profile & Goals", style = MaterialTheme.typography.titleMedium)
+            
+            OutlinedTextField(
+                value = nameStr,
+                onValueChange = { nameStr = it },
+                label = { Text("Your Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Text("Nutritional Goals", style = MaterialTheme.typography.titleMedium)
             
             OutlinedTextField(
@@ -95,10 +111,11 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
             
             Button(
                 onClick = {
+                    viewModel.updateUserName(nameStr)
                     val updatedGoal = UserGoal(
                         id = userGoal?.id ?: 1,
                         calories = caloriesStr.toIntOrNull() ?: 2000,
@@ -113,7 +130,7 @@ fun SettingsScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save Goals")
+                Text("Save Changes")
             }
         }
     }

@@ -27,6 +27,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.example.data.LogEntry
 import com.example.data.UserGoal
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +43,7 @@ fun DashboardScreen(
     val dailyLogs by viewModel.dailyLogs.collectAsState()
     val userGoal by viewModel.userGoal.collectAsState()
     val waterMl by viewModel.dailyWaterMl.collectAsState()
+    val userName by viewModel.userName.collectAsState()
 
     val dateFormat = SimpleDateFormat("EEEE, MMMM dd", Locale.getDefault())
     val dateString = dateFormat.format(Date(currentDateMillis))
@@ -84,7 +89,7 @@ fun DashboardScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Nikhil 👋",
+                        text = if (userName.isNotBlank()) "$userName 👋" else "Guest 👋",
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -128,6 +133,136 @@ fun DashboardScreen(
             item {
                 Spacer(modifier = Modifier.height(32.dp))
             }
+        }
+    }
+
+    var showSetupDialog by remember { mutableStateOf(false) }
+    var setupStage by remember { mutableIntStateOf(1) }
+
+    LaunchedEffect(userName) {
+        if (userName.isBlank()) {
+            showSetupDialog = true
+            setupStage = 1
+        }
+    }
+
+    if (showSetupDialog) {
+        var tempName by remember { mutableStateOf("") }
+        var calVal by remember { mutableStateOf("2000") }
+        var protVal by remember { mutableStateOf("120") }
+        var carbVal by remember { mutableStateOf("250") }
+        var fatVal by remember { mutableStateOf("65") }
+        var fibVal by remember { mutableStateOf("30") }
+        var waterVal by remember { mutableStateOf("2500") }
+
+        if (setupStage == 1) {
+            AlertDialog(
+                onDismissRequest = { },
+                title = { Text("Welcome to Food Tracker!") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Please enter your name to personalize your experience.")
+                        OutlinedTextField(
+                            value = tempName,
+                            onValueChange = { tempName = it },
+                            label = { Text("Your Name") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (tempName.isNotBlank()) {
+                                setupStage = 2
+                            }
+                        },
+                        enabled = tempName.isNotBlank()
+                    ) {
+                        Text("Next")
+                    }
+                }
+            )
+        } else {
+            val dialogScrollState = rememberScrollState()
+            AlertDialog(
+                onDismissRequest = { },
+                title = { Text("Set Daily Goals") },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 300.dp)
+                            .verticalScroll(dialogScrollState),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Hi $tempName! Set your daily nutrition and water goals.")
+                        OutlinedTextField(
+                            value = calVal,
+                            onValueChange = { calVal = it },
+                            label = { Text("Calories (kcal)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = protVal,
+                            onValueChange = { protVal = it },
+                            label = { Text("Protein (g)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = carbVal,
+                            onValueChange = { carbVal = it },
+                            label = { Text("Carbohydrates (g)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = fatVal,
+                            onValueChange = { fatVal = it },
+                            label = { Text("Fats (g)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = fibVal,
+                            onValueChange = { fibVal = it },
+                            label = { Text("Fiber (g)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = waterVal,
+                            onValueChange = { waterVal = it },
+                            label = { Text("Water (ml)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.updateUserName(tempName)
+                            val goal = UserGoal(
+                                id = userGoal?.id ?: 1,
+                                calories = calVal.toIntOrNull() ?: 2000,
+                                protein = protVal.toIntOrNull() ?: 120,
+                                carbs = carbVal.toIntOrNull() ?: 250,
+                                fat = fatVal.toIntOrNull() ?: 65,
+                                fiber = fibVal.toIntOrNull() ?: 30,
+                                waterMl = waterVal.toIntOrNull() ?: 2500
+                            )
+                            viewModel.updateGoal(goal)
+                            showSetupDialog = false
+                        }
+                    ) {
+                        Text("Get Started")
+                    }
+                }
+            )
         }
     }
 }
