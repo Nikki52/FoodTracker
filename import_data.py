@@ -16,17 +16,20 @@ def process_csv_file(filename, base_foods):
         count = 0
         for row in reader:
             try:
+                # Convert keys to lowercase for robust lookup
+                row_lower = {k.lower().strip() if k else "": v for k, v in row.items()}
+                
                 # Dynamically try to find the Food Name column
-                name = clean_text(row.get('Dish Name') or row.get('food_name') or row.get('Name') or '')
+                name = clean_text(row_lower.get('dish name') or row_lower.get('food_name') or row_lower.get('name') or '')
                 if not name:
                     continue
                 
                 # Dynamically try to find the nutrition columns
-                cal = float(row.get('Calories (kcal)') or row.get('energy_kcal') or row.get('Calories') or 0)
-                carb = float(row.get('Carbohydrates (g)') or row.get('carb_g') or row.get('Carbs') or 0)
-                prot = float(row.get('Protein (g)') or row.get('protein_g') or row.get('Protein') or 0)
-                fat = float(row.get('Fats (g)') or row.get('fat_g') or row.get('Fat') or 0)
-                fiber = float(row.get('Fibre (g)') or row.get('fibre_g') or row.get('Fiber') or 0)
+                cal = float(row_lower.get('calories (kcal)') or row_lower.get('energy_kcal') or row_lower.get('calories') or 0)
+                carb = float(row_lower.get('carbohydrates (g)') or row_lower.get('carb_g') or row_lower.get('carbs') or 0)
+                prot = float(row_lower.get('protein (g)') or row_lower.get('protein_g') or row_lower.get('protein') or 0)
+                fat = float(row_lower.get('fats (g)') or row_lower.get('fat_g') or row_lower.get('fat') or 0)
+                fiber = float(row_lower.get('fibre (g)') or row_lower.get('fibre_g') or row_lower.get('fiber') or 0)
                 
                 base_foods.append({
                     "name": name,
